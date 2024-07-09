@@ -1,33 +1,33 @@
-"""
-연결된 사람을 계속 타고 가서 탐색
-dfs
-"""
-
+# 사람 수
 N = int(input())
-A, B = map(int, input().split())
+
+# 구해야 되는 관계
+S, T = map(int, input().split())
+
+# 부모-자식 관계 수
 M = int(input())
-graph = [[] for _ in range(N+1)]
-visited = [False] * (N+1)
-result = []
+graph = [[] for _ in range(N + 1)]
 
 for _ in range(M):
-    x, y = map(int, input().split())
-    graph[x].append(y)
-    graph[y].append(x)
+    a, b = map(int, input().split())
+    graph[a].append(b)
+    graph[b].append(a)
+
+visited = [False] * (N + 1)
+results = []
 
 def dfs(v, num):
-    num += 1
     visited[v] = True
 
-    if v == B:
-        result.append(num)
-    
+    if v == T:
+        results.append(num)
+
     for i in graph[v]:
         if not visited[i]:
-            dfs(i, num)
+            dfs(i, num + 1)
 
-dfs(A, 0)
-if len(result) == 0:
+dfs(S, 0)
+if len(results) == 0:
     print(-1)
 else:
-    print(result[0] - 1)
+    print(*results)
