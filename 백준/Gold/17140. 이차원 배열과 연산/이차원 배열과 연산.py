@@ -15,7 +15,7 @@ def r_op():
     max_len = 0
     for row in a:
         rows = []
-        count = [0] * 1000
+        count = [0] * 101
         for r in row:
             count[r] += 1
         for i, c in enumerate(count):
