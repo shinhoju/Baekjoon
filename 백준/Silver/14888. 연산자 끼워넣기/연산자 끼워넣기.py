@@ -1,46 +1,67 @@
+# 연산자 끼워넣기
+# 구현, 전체 탐색
+# 최대값 / 최소값 한 줄에 하나씩 출력
 from itertools import permutations
 
+
 N = int(input())
-arr = list(map(int, input().split()))
+A = list(map(int, input().split()))
+ops = list(map(int, input().split()))
+# 연산자: + - * //
+#       0 1 2 3
+# 개수   n n n n
 
-o1, o2, o3, o4 = map(int, input().split())
-op = [1] * o1 + [2] * o2 + [3] * o3 + [4] * o4          # 덧셈 / 뺄셈 / 곱셈 / 나눗셈
+# 구하고 싶은 것
+results = []
+
+# 연산 함수
+def operation(seq, s, b):
+    global keys, A
+    # 앞에서 부터 순서대로
+    # 음수의 나눗셈: -( -(음수) // (양수) )
+    if seq == N-1:
+        return s
+
+    else:
+    # 나눗셈
+        if keys[seq] == 3:
+            if s < 0:
+                s = -((-s) // A[b])
+            else:
+                s = s // A[b]
+
+        # 덧셈
+        elif keys[seq] == 0:
+            s = s + A[b]
+
+        # 뺄셈
+        elif keys[seq] == 1:
+            s = s - A[b]
+
+        # 곱셈
+        elif keys[seq] == 2:
+            s = s * A[b]
+
+        return operation(seq+1, s, b+1)
 
 
-# 재귀 형식 구현
-def func(value, p_idx, n_idx, depth):              # (값), (연산자), (연산자 뒤의 숫자)
-    global p, arr, temp
+ops_list = []
+for i, o in enumerate(ops):
+    if not len(ops_list):
+        ops_list = [i] * o
 
-    # 종료 조건 : idx 끝에 도달
-    if depth == (N - 1):
-        temp = value
-        return
-
-    elif p[p_idx] == 1:
-        result = value + arr[n_idx]
-        func(result, p_idx + 1, n_idx + 1, depth + 1)
-
-    elif p[p_idx] == 2:
-        result = value - arr[n_idx]
-        func(result, p_idx + 1, n_idx + 1, depth + 1)
-
-    elif p[p_idx] == 3:
-        result = value * arr[n_idx]
-        func(result, p_idx + 1, n_idx + 1, depth + 1)
-
-    elif p[p_idx] == 4:
-        if abs(value) != value:     # 음수인 경우
-            result = -(abs(value) // arr[n_idx])
-        else:
-            result = value // arr[n_idx]
-        func(result, p_idx + 1, n_idx + 1, depth + 1)
+    else:
+        ops_list = ops_list + ([i] * o)
 
 
-values = []
-for p in permutations(op):
-    temp = 0
-    func(arr[0], 0, 1, 0)
-    values.append(temp)
+# [1] 연산자 순서 정하기 (dict 형 keys 중복될 수 없다는 것을 이용해 저장)
+ops_dict = {}
+for temp in permutations(ops_list, len(ops_list)):
+    ops_dict[temp] = None
 
-print(max(values))
-print(min(values))
+# [2] 모든 조합에 대해 전체 탐색
+for keys in ops_dict.keys():
+    results.append(operation(0, A[0], 1))
+
+print(max(results))
+print(min(results))
