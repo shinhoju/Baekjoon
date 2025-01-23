@@ -1,42 +1,54 @@
+# 치킨 배달
+# 2 <= N <= 50, 1 <= M <= 13
+
+
 from itertools import combinations
 
 N, M = map(int, input().split())
-maps = []
+city = []
 for _ in range(N):
-    maps.append(list(map(int, input().split())))
+    city.append(list(map(int, input().split())))
 
-chicken = []
-house = []
+
+def manhattan_len(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
+
+
+# [1] 집 치킨집 위치 구하기
+homes = []
+chickens = []
+
 for i in range(N):
     for j in range(N):
-        if maps[i][j] == 2:
-            chicken.append((i, j))
-        elif maps[i][j] == 1:
-            house.append((i, j))
+        if city[i][j] == 1:
+            homes.append((i, j))
+        elif city[i][j] == 2:
+            chickens.append((i, j))
 
-graph = {}
-for hx, hy in house:
-    graph[(hx, hy)] = []
-    for cx, cy in chicken:
-        temp = (abs(hx - cx)) + (abs(hy - cy))
-        graph[(hx, hy)].append(temp)
+# [2] M 보다 현재 치킨 집이 작거나 같은 경우: 바로 최소 치킨 거리 구함
+if len(chickens) <= M:
+    sum_dis = 0
+    for h_x, h_y in homes:
+        temp = 200
+        for c_x, c_y in chickens:
+            dis = manhattan_len(h_x, h_y, c_x, c_y)
+            if dis < temp:
+                temp = dis
+        sum_dis += temp
 
-
-temp = 0
-if len(chicken) <= M:
-    dist = []
-    temp = 0
-    for h in graph.values():
-        temp += min(h)
-    dist.append(temp)
-
+# [3] M 보다 현재 치킨 집이 많은 경우: combination 활용
 else:
-    dist = []
-    for comb in combinations(range(len(chicken)), M):
-        temp = 0
-        for h in graph.values():
-            min_dist = min(h[i] for i in comb)
-            temp += min_dist
-        dist.append(temp)
+    sum_dis = 2**16
+    for selected_chicken in combinations(chickens, M):
+        sum_temp = 0
+        for h_x, h_y in homes:
+            temp = 200
+            for c_x, c_y in selected_chicken:
+                dis = manhattan_len(h_x, h_y, c_x, c_y)
+                if dis < temp:
+                    temp = dis
+            sum_temp += temp
+        if sum_temp < sum_dis:
+            sum_dis = sum_temp
 
-print(min(dist))
+print(sum_dis)
