@@ -1,88 +1,67 @@
+# 마법사 상어와 비바라기
+# 구현, 시뮬레이션
+
 N, M = map(int, input().split())
 
-# 바구니 내부의 물 저장
-water = []
+A = []
 for _ in range(N):
-    water.append(list(map(int, input().split())))
+    A.append(list(map(int, input().split())))
 
 move = []
 for _ in range(M):
     move.append(list(map(int, input().split())))
 
-# 좌 좌상 상 우상 우 우하 하 좌하 (대각선: 1, 3, 5, 7)
-dr = [0, -1, -1, -1, 0, 1, 1, 1]
-dc = [-1, -1, 0, 1, 1, 1, 0, -1]
+# 1번 부터 ←, ↖, ↑, ↗, →, ↘, ↓, ↙
+dx = [0, 0, -1, -1, -1, 0, 1, 1, 1]
+dy = [0, -1, -1, 0, 1, 1, 1, 0, -1]
 
-# 초기 상태 구름
-cloud = [[0] * N for _ in range(N)]
-cloud[N-2][0] = 1
-cloud[N-1][0] = 1
-cloud[N-2][1] = 1
-cloud[N-1][1] = 1
+# 구름 위치 저장
+cloud = [(N-2, 0), (N-2, 1), (N-1, 0), (N-1, 1)]
 
-def move_cloud(md, ms):
-    global cloud
-    temp = [[0] * N for _ in range(N)]
-    for r in range(N):
-        for c in range(N):
-            if cloud[r][c] == 1:
-                # 이동, 위 아래 및 양 옆 연결 되어 있음
-                nr, nc = (r + dr[md]*ms + N) % N, (c + dc[md]*ms + N) % N
-                cloud[r][c] = 0
-                temp[nr][nc] = 1
-    cloud = temp
+for d, s in move:
+    # [1] 모든 구름 이동
+    new_cloud = []
+    for cx, cy in cloud:
+        # 행, 열 연결 되어 있음
+        ncx, ncy = cx + s * dx[d], cy + s * dy[d]
+        if ncx < 0:
+            ncx = N - (abs(ncx) % N)
+        if ncx >= N:
+            ncx = ncx % N
+        if ncy < 0:
+            ncy = N - (abs(ncy) % N)
+        if ncy >= N:
+            ncy = ncy % N
+        new_cloud.append((ncx, ncy))
+        # [2] 비가 내려 구름이 있는 칸 바구니 저장된 물의 양 + 1
+        A[ncx][ncy] += 1
 
+    # [4] 물 복사 버그: new_cloud 칸에서 대각선 검사, 연결된 칸 x
+    for cx, cy in new_cloud:
+        bug = 0
+        for n in [2, 4, 6, 8]:
+            ncx, ncy = cx + dx[n], cy + dy[n]
+            if ncx < 0 or ncx >= N or ncy < 0 or ncy >= N:
+                continue
+            if A[ncx][ncy] > 0:
+                bug += 1
+        A[cx][cy] += bug
 
-for md, ms in move:
-    # [1] 구름 이동 (방향, 거리)
-    move_cloud(md-1, ms)
+    # [5] 바구니 물 2 이상인 칸에 구름이 생기고 물의 양 -2, cloud 저장된 칸 x
+    next_cloud = []
+    for i in range(N):
+        for j in range(N):
+            if (i, j) in new_cloud:
+                continue
+            if A[i][j] >= 2:
+                next_cloud.append((i, j))
+                A[i][j] -= 2
 
-    # [3] 구름 없애기
-    new_cloud = [[0] * N for _ in range(N)]
-
-    # [2] 비 내리기 (바구니 +1)
-    # [4] 물이 증가한 곳 (구름 존재 했던 위치) 물복사 버그 마법 사용
-    # [5] 바구니 저장된 물의 양이 2 이상인 칸에 구름 생기고, 물 - 2
-    #     구름이 사라진 칸이 x
-
-    for r in range(N):
-        for c in range(N):
-            if cloud[r][c] == 1:
-                # [2]
-                water[r][c] += 1
-
-    for r in range(N):
-        for c in range(N):
-            if cloud[r][c] == 1:
-                for i in range(1, 8, 2):
-                    nr, nc = r + dr[i], c + dc[i]
-                    if nr < 0 or nr >= N or nc < 0 or nc >= N:
-                        continue
-                    if water[nr][nc] >= 1:
-                        water[r][c] += 1
-
-    # [4] 물이 증가한 곳 (구름 존재 했던 위치) 물복사 버그 마법 사용
-    # for r in range(N):
-    #     for c in range(N):
-    #         if cloud[r][c] == 1:
-    #             # 대각선 방향 물이 있는지 확인 후 물 + 1
-    #             for i in range(1, 8, 2):
-    #                 nr, nc = r + dr[i], c + dc[i]
-    #                 if nr < 0 or nr >= N or nc < 0 or nc >= N:
-    #                     continue
-    #                 water[r][c] += 1
-
-    for r in range(N):
-        for c in range(N):
-            # [5]
-            if water[r][c] >= 2 and not cloud[r][c]:
-                new_cloud[r][c] = 1
-                water[r][c] -= 2
-
-    cloud = new_cloud
+    cloud = next_cloud
 
 result = 0
 for i in range(N):
-    result += sum(water[i])
+    for j in range(N):
+        result += A[i][j]
 
 print(result)
