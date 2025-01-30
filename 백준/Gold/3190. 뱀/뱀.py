@@ -1,63 +1,57 @@
 from collections import deque
 
 N = int(input())
+
 K = int(input())
-
-board = [[0] * (N+2) for _ in range(N+2)]
-board[1][1] = 1
-
-apple = []
+apples = []
 for _ in range(K):
-    x, y = map(int, input().split())
-    board[x][y] = 2
-    apple.append((x, y))
+    apples.append(tuple(map(int, input().split())))
 
 L = int(input())
-# move = (시간, 방향 = L: 왼쪽 D: 오른쪽)
-move = {}
+move = dict()
 for _ in range(L):
-    a, b = input().split()
-    move[int(a)] = b
+    x, c = input().split()
+    move[int(x)] = c
 
+# 오른 아래 왼 위 (오른쪽 회전)
 dx = [0, 1, 0, -1]
 dy = [1, 0, -1, 0]
 
-d = 0
-# hx, hy = 1, 1       # 머리 좌표
-# tx, ty = 1, 1       # 꼬리 좌표
+# snake: 몸 위치 좌표, snake_d: 머리 방향
 snake = deque()
+snake_d = 0
 snake.append((1, 1))
 
-cnt = 0
+result = 0
+
+
 while True:
-    cnt += 1
-    # [1] 뱀 이동
-    # [1-2] 머리 이동
-    hx, hy = snake[0]
-    hnx, hny = hx + dx[d], hy + dy[d]
-    # 종료 조건
-    if hnx <= 0 or hnx >= N+1 or hny <= 0 or hny >= N+1:
+    if result in move.keys():
+        if move[result] == 'L':
+            snake_d = (snake_d + 3) % 4
+        if move[result] == 'D':
+            snake_d = (snake_d + 1) % 4
+
+    # [1] 머리를 다음 칸에 위치
+    head_x = snake[0][0] + dx[snake_d]
+    head_y = snake[0][1] + dy[snake_d]
+
+    # [2] 벽이나 자기 몸과 부딛히면 게임 끝
+    if head_x < 1 or head_x > N or head_y < 1 or head_y > N:
+        result += 1
         break
-    if board[hnx][hny] == 1:
+    if (head_x, head_y) in snake:
+        result += 1
         break
 
-    # 사과가 있을 때:
-    if board[hnx][hny] == 2:
-        board[hnx][hny] = 1
-        snake.appendleft((hnx, hny))
-    # 사과가 없을 때
+    # [3-1] 이동한 칸에 사과가 있으면, 그 칸에 있던 사과 x, 꼬리 안움직
+    if (head_x, head_y) in apples:
+        apples.remove((head_x, head_y))
+        snake.appendleft((head_x, head_y))
+    # [3-2] 이동한 칸에 사과 없으면, 몸 길이를 줄여 꼬리가 위치한 칸 비움
     else:
-        tx, ty = snake.pop()
-        board[tx][ty] = 0
-        board[hnx][hny] = 1
-        snake.appendleft((hnx, hny))
+        snake.appendleft((head_x, head_y))
+        snake.pop()
+    result += 1
 
-    # [1-1] 방향 바꾸어야 할 때
-    if cnt in move.keys():
-        md = move[cnt]
-        if md == 'D':
-            d = (d + 1) % 4
-        else:
-            d = (d - 1) % 4
-
-print(cnt)
+print(result)
