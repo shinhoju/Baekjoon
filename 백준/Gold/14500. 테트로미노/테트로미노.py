@@ -1,45 +1,87 @@
-N, M = map(int, input().split())
-paper = []
-for _ in range(N):
-    paper.append(list(map(int, input().split())))
+# 테트로미노
+# 브루트포스
 
-tetris = {0: lambda x,y: [(x, y), (x, y+1), (x, y+2), (x, y+3)],
-          1: lambda x,y: [(x, y), (x, y+1), (x+1, y), (x+1, y+1)],
-          2: lambda x,y: [(x, y), (x+1, y), (x+2, y), (x+2, y+1)],
-          3: lambda x,y: [(x, y), (x+1, y), (x+1, y+1), (x+2, y+1)],
-          4: lambda x,y: [(x, y), (x, y+1), (x, y+2), (x+1, y+1)],
-          5: lambda x,y: [(x, y), (x+1, y), (x+2, y), (x+3, y)],
-          6: lambda x,y: [(x, y), (x+1, y), (x, y+1), (x, y+2)],
-          7: lambda x,y: [(x, y), (x, y+1), (x+1, y+1), (x+2, y+1)],
-          8: lambda x,y: [(x, y), (x, y+1), (x, y+2), (x-1, y+2)],
-          9: lambda x,y: [(x, y), (x, y+1), (x-1, y+1), (x-2, y+1)],
-          10: lambda x,y: [(x, y), (x+1, y), (x+1, y+1), (x+1, y+2)],
-          11: lambda x,y: [(x, y), (x, y+1), (x+1, y), (x+2, y)],
-          12: lambda x,y: [(x, y), (x, y+1), (x, y+2), (x+1, y+2)],
-          13: lambda x,y: [(x, y), (x, y+1), (x-1, y+1), (x-1, y+2)],
-          14: lambda x,y: [(x, y), (x+1, y), (x, y+1), (x-1, y+1)],
-          15: lambda x,y: [(x, y), (x, y+1), (x+1, y+1), (x+1, y+2)],
-          16: lambda x,y: [(x, y), (x, y+1), (x-1, y+1), (x+1, y+1)],
-          17: lambda x,y: [(x, y), (x-1, y+1), (x, y+1), (x, y+2)],
-          18: lambda x,y: [(x, y), (x+1, y), (x+2, y), (x+1, y+1)],
-}
+N, M = map(int, input().split())
+maps = []
+for _ in range(N):
+    maps.append(list(map(int, input().split())))
+
+
+def t1(x, y):
+    sums = 0
+    if x + 3 < N:
+        t11 = maps[x][y] + maps[x+1][y] + maps[x+2][y] + maps[x+3][y]
+        sums = max(sums, t11)
+
+    if y + 3 < M:
+        t12 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x][y+3]
+        sums = max(sums, t12)
+
+    return sums
+
+def t2(x, y):
+    if x + 1 < N and y + 1 < M:
+        t21 = maps[x][y] + maps[x+1][y] + maps[x][y+1] + maps[x+1][y+1]
+        return t21
+    else:
+        return 0
+
+def t3(x, y):
+    sums = 0
+    if x + 2 < N and y + 1 < M:
+        t31 = maps[x][y] + maps[x+1][y] + maps[x+2][y] + maps[x+2][y+1]
+        t32 = maps[x+2][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+2][y+1]
+        t33 = maps[x][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+2][y+1]
+        t34 = maps[x][y] + maps[x][y+1] + maps[x+1][y] + maps[x+2][y]
+        sums = max(sums, t31, t32, t33, t34)
+
+    if x + 1 < N and y + 2 < M:
+        t35 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x+1][y]
+        t36 = maps[x][y] + maps[x+1][y] + maps[x+1][y+1] + maps[x+1][y+2]
+        t37 = maps[x+1][y] + maps[x+1][y+1] + maps[x+1][y+2] + maps[x][y+2]
+        t38 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x+1][y+2]
+        sums = max(sums, t35, t36, t37, t38)
+
+    return sums
+
+def t4(x, y):
+    sums = 0
+    if x + 2 < N and y + 1 < M:
+        t41 = maps[x][y] + maps[x+1][y] + maps[x+1][y+1] + maps[x+2][y+1]
+        t42 = maps[x][y+1] + maps[x+1][y] + maps[x+1][y+1] + maps[x+2][y]
+        sums = max(sums, t41, t42)
+
+    if x + 1 < N and y + 2 < M:
+        t43 = maps[x][y+1] + maps[x][y+2] + maps[x+1][y] + maps[x+1][y+1]
+        t44 = maps[x][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+1][y+2]
+        sums = max(sums, t43, t44)
+
+    return sums
+
+def t5(x, y):
+    sums = 0
+    if x + 2 < N and y + 1 < M:
+        t51 = maps[x+1][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+2][y+1]
+        t52 = maps[x][y] + maps[x+1][y] + maps[x+2][y] + maps[x+1][y+1]
+        sums = max(sums, t51, t52)
+
+    if x + 1 < N and y + 2 < M:
+        t53 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x+1][y+1]
+        t54 = maps[x][y+1] + maps[x+1][y] + maps[x+1][y+1] + maps[x+1][y+2]
+        sums = max(sums, t53, t54)
+
+    return sums
+
 
 result = 0
 
 for i in range(N):
     for j in range(M):
-        for n in range(19):
-            tet = tetris[n](i, j)
-            # 경계 값
-            x_s = [x[0] for x in tet]
-            y_s = [x[1] for x in tet]
-            # 경계 확인
-            if min(x_s) < 0 or min(y_s) < 0 or max(x_s) >= N or max(y_s) >= M:
-                continue
-            temp = 0
-            for m in range(4):
-                tx, ty = tet[m]
-                temp += paper[tx][ty]
-            result = max(result, temp)
+        t1_max = t1(i, j)
+        t2_max = t2(i, j)
+        t3_max = t3(i, j)
+        t4_max = t4(i, j)
+        t5_max = t5(i, j)
+        result = max(t1_max, t2_max, t3_max, t4_max, t5_max, result)
 
 print(result)
