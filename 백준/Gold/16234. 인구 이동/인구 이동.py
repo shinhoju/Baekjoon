@@ -1,71 +1,73 @@
+# 16234. 인구이동
+
 from collections import deque
+from copy import deepcopy
 
 N, L, R = map(int, input().split())
-A = []
+country = []
 for _ in range(N):
-    A.append(list(map(int, input().split())))
+    country.append(list(map(int, input().split())))
 
+# 인구 이동이 며칠 동안 발생하는지 카운팅
+cnt = 0
+
+# 상 하 좌 우
 dx = [-1, 1, 0, 0]
 dy = [0, 0, -1, 1]
 
 
-def in_range(x, y):
-    if x < 0 or x >= N or y < 0 or y >= N:
-        return False
-    else:
-        return True
-
-
 def bfs(x, y):
+    global dx, dy, visited
+
+    visited[x][y] = True
     queue = deque()
     queue.append((x, y))
-    visited[x][y] = True
-    temp = set()
-    temp.add((x, y))
+    temp_pairs = [(x, y)]
+    temp_sum = country[x][y]
 
     while queue:
         x, y = queue.popleft()
         for i in range(4):
             nx, ny = x + dx[i], y + dy[i]
-            if not in_range(nx, ny):
+            if nx < 0 or nx >= N or ny < 0 or ny >= N:
                 continue
-            if not visited[nx][ny]:
-               if L <= abs(A[x][y] - A[nx][ny]) <= R:
-                    temp.add((nx, ny))
-                    visited[nx][ny] = True
-                    queue.append((nx, ny))
+            if visited[nx][ny]:
+                continue
+            if L <= abs(country[x][y] - country[nx][ny]) <= R:
+                temp_pairs.append((nx, ny))
+                queue.append((nx, ny))
+                visited[nx][ny] = True
+                temp_sum += country[nx][ny]
 
-    units.append(temp)
+    return temp_pairs, temp_sum
 
 
-cnt = 0
 while True:
-    # [1] 좌 하 상 우 에 있는 국가 중 인구 차이가 L 이상 R 이하일 때 연합
-    units = []          # 연합 리스트 담을 리스트
+    # [1] 연합 구하기
+    pairs = set()
+    pair_sum = dict()
+
     visited = [[False] * N for _ in range(N)]
+
     for i in range(N):
         for j in range(N):
-            bfs(i, j)
+            if not visited[i][j]:
+                temp, summ = bfs(i, j)
+                if len(temp) > 1:
+                    pair_sum[tuple(sorted(temp))] = summ
+                    pairs.add(tuple(sorted(temp)))
 
-    ones = 0
-    for unit in units:
-        if len(unit) == 1:
-            ones += 1
-            continue
-
-        sum_v = 0
-        for ux, ny in unit:
-            sum_v += A[ux][ny]
-
-        ppl = sum_v // len(unit)
-        for ux, ny in unit:
-            A[ux][ny] = ppl
-
-    # 종료 조건 : 더 이상 인구 이동 불가능 할 때
-    if ones == (N * N):
+    if len(pairs) < 1:
         break
+    else:
+        cnt += 1
 
-    cnt += 1
-
+    # [2] 인구 이동: 인구수 = (연합의 인구수) / (연합을 이루고 있는 칸의 개수)
+    new_country = deepcopy(country)
+    for p in pairs:
+        new_population = pair_sum[p] // len(p)
+        for px, py in p:
+            new_country[px][py] = new_population
+    country = new_country
 
 print(cnt)
