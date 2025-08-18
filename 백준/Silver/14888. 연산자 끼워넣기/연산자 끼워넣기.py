@@ -1,67 +1,48 @@
-# 연산자 끼워넣기
-# 구현, 전체 탐색
-# 최대값 / 최소값 한 줄에 하나씩 출력
+# 14888. 연산자 끼워넣기
 from itertools import permutations
 
-
 N = int(input())
-A = list(map(int, input().split()))
-ops = list(map(int, input().split()))
-# 연산자: + - * //
-#       0 1 2 3
-# 개수   n n n n
+nums = list(map(int, input().split()))
+# ops = [+, -, *, //]
+ops_num = list(map(int, input().split()))
 
-# 구하고 싶은 것
-results = []
 
-# 연산 함수
-def operation(seq, s, b):
-    global keys, A
-    # 앞에서 부터 순서대로
-    # 음수의 나눗셈: -( -(음수) // (양수) )
-    if seq == N-1:
-        return s
+mn = 1e10
+mx = -1e10
 
+ops = []
+for i in range(len(ops_num)):
+    if ops_num[i]:
+        for _ in range(ops_num[i]):
+            ops.append(i)
+
+
+def calculate(x, y, o):
+    if o == 0:
+        return x + y
+    elif o == 1:
+        return x - y
+    elif o == 2:
+        return x * y
     else:
-    # 나눗셈
-        if keys[seq] == 3:
-            if s < 0:
-                s = -((-s) // A[b])
-            else:
-                s = s // A[b]
-
-        # 덧셈
-        elif keys[seq] == 0:
-            s = s + A[b]
-
-        # 뺄셈
-        elif keys[seq] == 1:
-            s = s - A[b]
-
-        # 곱셈
-        elif keys[seq] == 2:
-            s = s * A[b]
-
-        return operation(seq+1, s, b+1)
+        if x < 0:
+            return -((-x) // y)
+        else:
+            return x // y
 
 
-ops_list = []
-for i, o in enumerate(ops):
-    if not len(ops_list):
-        ops_list = [i] * o
+for op in permutations(ops, len(ops)):
+    # 순서대로 계산
 
-    else:
-        ops_list = ops_list + ([i] * o)
+    xi = nums[0]
+    for yi, oi in zip(range(1, len(nums)), op):
+        xi = calculate(xi, nums[yi], oi)
 
+    # 최대 / 최소 갱신
+    if mx < xi:
+        mx = xi
+    if mn > xi:
+        mn = xi
 
-# [1] 연산자 순서 정하기 (dict 형 keys 중복될 수 없다는 것을 이용해 저장)
-ops_dict = {}
-for temp in permutations(ops_list, len(ops_list)):
-    ops_dict[temp] = None
-
-# [2] 모든 조합에 대해 전체 탐색
-for keys in ops_dict.keys():
-    results.append(operation(0, A[0], 1))
-
-print(max(results))
-print(min(results))
+print(mx)
+print(mn)
