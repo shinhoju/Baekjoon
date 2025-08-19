@@ -1,55 +1,64 @@
-# 로봇 청소기
+# 14503. 로봇청소기
 
 N, M = map(int, input().split())
-x, y, d = map(int, input().split())
+rx, ry, rd = map(int, input().split())
 
-# 0: 빈 칸, 1: 벽, -1: 청소 완료
-table = []
+# 0: 빈 칸, 1: 벽, 2: 청소 완
+arr = []
 for _ in range(N):
-    table.append(list(map(int, input().split())))
+    arr.append(list(map(int, input().split())))
 
-# 북 동 남 서
 dx = [-1, 0, 1, 0]
 dy = [0, 1, 0, -1]
 
 
-def empty_space(r, c):
-    flag = False        # 빈 칸이 없음
-    for n in range(4):
-        # 1칸 이라도 빈 칸이 있으면 flag 변경
-        if table[r+dx[n]][c+dy[n]] == 0:
+def empty_ck(x, y):
+    flag = False
+
+    for i in range(4):
+        nx, ny = x + dx[i], y + dy[i]
+        if arr[nx][ny] == 0:            # 빈 칸 있으면 flag 수정
             flag = True
-            break
 
     return flag
 
 
+def in_range(x, y):
+    if x < 0 or x >= N or y < 0 or y >= M:
+        return False
+    else:
+        return True
+
+
 result = 0
-
 while True:
-    # [1] 현재 칸이 빈 칸인 경우, 청소
-    if table[x][y] == 0:
-        table[x][y] = -1
+    # [1] 현재 칸 청소x : 현재 칸 청소
+    if arr[rx][ry] == 0:
         result += 1
+        arr[rx][ry] = 2
 
-    # [2] 현재 칸의 주변 4칸 중 청소 안 된 빈 칸이 없는 경우
-    if not empty_space(x, y):
-        # [2-1] 방향 유지, 한 칸 후진, 1번으로 이동
-        # [2-2] 만약 후진한 칸이 벽이면 멈춤
-        nx, ny = x + dx[(d+2)%4], y + dy[(d+2)%4]
-        if table[nx][ny] == 1:
+    # [2] 현재 칸의 주변 4칸 중 빈 칸 없는 경우
+    if not empty_ck(rx, ry):
+        # [2-1] 후진할 수 있으면 후진 -> 1번으로 돌아감
+        # [2-2] 후진할 수 없으면 멈춤
+        nx, ny = rx + dx[(rd + 2) % 4], ry + dy[(rd + 2) % 4]
+        if not in_range(nx, ny):
+            break
+        if arr[nx][ny] == 1:
             break
         else:
-            x, y = nx, ny
+            rx, ry = nx, ny
             continue
-
-    # [3] 현재 칸 주변 4칸 중 청소 되지 않은 칸이 있는 경우
+    # [3] 현재 칸의 주변 4칸 중 빈 칸 있는 경우
     else:
-        # [3-1] 반시계 방향 90도 회전
-        # [3-2] 방향 기준 앞쪽 칸이 청소 안 된 칸이면 한 칸 전진
-        d = (d-1) % 4
-        nx, ny = x + dx[d], y + dy[d]
-        if table[nx][ny] == 0:
-            x, y = nx, ny
+        # [3-1] 반시계 90도 회전
+        for i in range(1, 5):
+            nrd = (rd - i) % 4
+            nx, ny = rx + dx[nrd], ry + dy[nrd]
+            if in_range(nx, ny):
+                if arr[nx][ny] == 0:
+                    rx, ry = nx, ny
+                    rd = nrd
+                    break
 
 print(result)
