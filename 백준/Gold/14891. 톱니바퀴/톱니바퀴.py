@@ -1,81 +1,73 @@
-# 톱니바퀴 (시뮬레이션, 구현, dfs)
-# 구하는 것: K번 회전 시킨 후, 점수 구하기
-
-
-from copy import deepcopy
+# 14891. 톱니바퀴
 from collections import deque
 
-gears = []
+# 0: N극, 1: S극
+arr = []
 for _ in range(4):
-    gears.append(list(map(int, input())))
+    # temp = list(input().split())
+    temp = list(map(int, input()))
+    arr.append(temp)
 
+
+# 1: 시계, -1: 반시계
 K = int(input())
 move = []
 for _ in range(K):
-    a, b = map(int, input().split())
-    move.append([a-1, b])
+    move.append(list(map(int, input().split())))
 
 
-def bfs(idx, dirs):
-    visited = [False] * 4
-    rotate = [0] * 4            # 0: 안돌림, 1: 시계, -1: 반시계
-    queue = deque()
-    queue.append((idx, dirs))
-    visited[idx] = True
-    rotate[idx] = dirs
+def bfs(n, dr):
+    global v
 
-    while queue:
-        idx, dirs = queue.popleft()
-        for n in [-1, 1]:
-            n_idx = idx + n
-            if n_idx < 0 or n_idx >= 4:
-                continue
-            if visited[n_idx]:
-                continue
+    q = deque()
+    q.append((n, dr))
 
-            if n == -1 and gears[idx][6] != gears[n_idx][2]:
-                visited[n_idx] = True
-                n_dirs = 1 if dirs == -1 else -1
-                queue.append((n_idx, n_dirs))
-                rotate[n_idx] = n_dirs
+    while q:
+        n, dr = q.popleft()
 
-            if n == 1 and gears[idx][2] != gears[n_idx][6]:
-                visited[n_idx] = True
-                n_dirs = 1 if dirs == -1 else -1
-                queue.append((n_idx, n_dirs))
-                rotate[n_idx] = n_dirs
+        # 왼쪽 확인
+        ln = n - 1
+        if ln >= 0:
+            if arr[n][6] != arr[ln][2] and not v[ln]:
+                q.append((ln, -dr))
+                v[ln] = -dr
 
-    return rotate
+        # 오른쪽 확인
+        rn = n + 1
+        if rn <= 3:
+            if arr[n][2] != arr[rn][6] and not v[rn]:
+                q.append((rn, -dr))
+                v[rn] = -dr
+    return
 
 
-def rotation(r):
-    for i, g in enumerate(r):
-        if g == 0:
+# start
+for num, d in move:
+    # [1] 회전할 톱니바퀴 찾기
+    num = num - 1
+
+    v = [0] * 4
+    v[num] = d
+    bfs(num, d)
+
+    # [2] 회전
+    for num, d in enumerate(v):
+        if not d:
             continue
 
         temp = [0] * 8
+        for idx, x in enumerate(arr[num]):
+            if d == 1:
+                temp[(idx+1)%8] = x
+            else:
+                temp[(idx-1)%8] = x
 
-        if g == 1:
-            for j in range(8):
-                temp[(j+1) % 8] = gears[i][j]
-        else:
-            for j in range(8):
-                temp[(j+7) % 8] = gears[i][j]
+        arr[num] = temp
 
-
-        gears[i] = temp
-
-
-# [1] 톱니바퀴 회전
-for g_idx, g_dir in move:
-    # [1-1] 어느 바퀴 회전 해야 하는지 확인
-    rotate_gears = bfs(g_idx, g_dir)
-    rotation(rotate_gears)
-
-# 점수 구하기
+# [3] 최종 상태
 result = 0
-for i in range(4):
-    if gears[i][0] == 1:
-        result += 2**i
+for idx in range(4):
+    if arr[idx][0] == 1:
+        result += pow(2, idx)
 
 print(result)
