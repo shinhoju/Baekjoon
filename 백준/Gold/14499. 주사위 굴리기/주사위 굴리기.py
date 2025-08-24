@@ -1,64 +1,63 @@
 N, M, x, y, K = map(int, input().split())
-maps = []
+arr = []
 for _ in range(N):
-    maps.append(list(map(int, input().split())))
+    arr.append(list(map(int, input().split())))
 move = list(map(int, input().split()))
 
-# 동 서 북 남
 dx = [0, 0, 0, -1, 1]
 dy = [0, 1, -1, 0, 0]
 
-dice_map = [0] * 6
-
-d_center = 0
-d_left = 1
-d_bottom = 2
-
-def roll_dice(d):
-    global d_center, d_left, d_bottom
-
-    c_temp = d_center
-    l_temp = d_left
-    b_temp = d_bottom
-
-    if d == 1:
-        # 동쪽
-        d_center = l_temp
-        d_left = (c_temp + 3) % 6
-        d_bottom = b_temp
-
-    if d == 2:
-        # 서쪽
-        d_center = (l_temp + 3) % 6
-        d_left = c_temp
-        d_bottom = b_temp
-
-    if d == 3:
-        # 북쪽
-        d_center = (b_temp + 3) % 6
-        d_left = l_temp
-        d_bottom = c_temp
-
-    if d == 4:
-        # 남쪽
-        d_center = b_temp
-        d_left = l_temp
-        d_bottom = (c_temp + 3) % 6
+dice_arr = [0, 0, 0, 0, 0, 0]
+dice = [0, 2, 4]
+opp = {0: 1, 1: 0, 2: 3, 3: 2, 4: 5, 5: 4}
 
 
-for m in move:
-    nx, ny = x + dx[m], y + dy[m]
+def roll_dice(lst, num):
+    n_lst = [0] * 3
+    if num == 1:
+        n_lst[0] = lst[1]
+        n_lst[1] = opp[lst[0]]
+        n_lst[2] = lst[2]
+        return n_lst
+    elif num == 2:
+        n_lst[0] = opp[lst[1]]
+        n_lst[1] = lst[0]
+        n_lst[2] = lst[2]
+    elif num == 3:
+        n_lst[0] = opp[lst[2]]
+        n_lst[1] = lst[1]
+        n_lst[2] = lst[0]
+    elif num == 4:
+        n_lst[0] = lst[2]
+        n_lst[1] = lst[1]
+        n_lst[2] = opp[lst[0]]
+    return n_lst
 
-    if nx < 0 or nx >= N or ny < 0 or ny >= M:
+
+def in_range(r, c):
+    if r < 0 or r >= N or c < 0 or c >= M:
+        return False
+    else:
+        return True
+
+
+for d in move:
+    # 주사위 다음 위치: 맵 바깥 x, 무시
+    nx, ny = x + dx[d], y + dy[d]
+    if not in_range(nx, ny):
         continue
 
-    roll_dice(m)
+    # d 방향 주사위 굴리기 -> dice 변화
+    # 이동한 칸에 쓰여 있는 수 0 => 주사위 바닥 수 복사
+    # 이동한 칸에 쓰여 있는 수 0이 아닌 경우 => 주사위 바닥 면으로 복사, 칸 0
+    n_dice = roll_dice(dice, d)
+    if arr[nx][ny] == 0:
+        arr[nx][ny] = dice_arr[n_dice[0]]
+    elif arr[nx][ny] > 0:
+        dice_arr[n_dice[0]] = arr[nx][ny]
+        arr[nx][ny] = 0
 
-    if maps[nx][ny] == 0:
-        maps[nx][ny] = dice_map[d_center]
-    else:
-        dice_map[d_center] = maps[nx][ny]
-        maps[nx][ny] = 0
-
+    # 상단에 쓰여 있는 값 구하기
+    print(dice_arr[opp[n_dice[0]]])
     x, y = nx, ny
-    print(dice_map[(d_center + 3) % 6])
+    dice = n_dice
