@@ -1,87 +1,71 @@
-# 테트로미노
-# 브루트포스
+# 14500. 테트로미노
 
 N, M = map(int, input().split())
-maps = []
+arr = []
 for _ in range(N):
-    maps.append(list(map(int, input().split())))
+    arr.append(list(map(int, input().split())))
 
 
-def t1(x, y):
-    sums = 0
-    if x + 3 < N:
-        t11 = maps[x][y] + maps[x+1][y] + maps[x+2][y] + maps[x+3][y]
-        sums = max(sums, t11)
+# 대충 500만번 연산 드감
+def tetris(x, y, n):
+    if n == 0:
+        return [(x, y), (x, y+1), (x, y+2), (x, y+3)]
+    elif n == 1:
+        return [(x, y), (x+1, y), (x+2, y), (x+3, y)]
+    elif n == 2:
+        return [(x, y), (x+1, y), (x+1, y+1), (x, y+1)]
+    elif n == 3:
+        return [(x, y), (x+1, y), (x+2, y), (x+2, y+1)]
+    elif n == 4:
+        return [(x, y+1), (x+1, y+1), (x+2, y+1), (x+2, y)]
+    elif n == 5:
+        return [(x, y), (x, y+1), (x, y+2), (x+1, y)]
+    elif n == 6:
+        return [(x, y), (x, y+1), (x+1, y+1), (x+2, y+1)]
+    elif n == 7:
+        return [(x+1, y), (x+1, y+1), (x+1, y+2), (x, y+2)]
+    elif n == 8:
+        return [(x, y), (x, y+1), (x, y+2), (x+1, y+2)]
+    elif n == 9:
+        return [(x, y), (x, y+1), (x+1, y), (x+2, y)]
+    elif n == 10:
+        return [(x, y), (x+1, y), (x+1, y+1), (x+1, y+2)]
+    elif n == 11:
+        return [(x, y), (x+1, y), (x+1, y+1), (x+2, y+1)]
+    elif n == 12:
+        return [(x+1, y), (x+2, y), (x, y+1), (x+1, y+1)]
+    elif n == 13:
+        return [(x+1, y), (x, y+1), (x+1, y+1), (x, y+2)]
+    elif n == 14:
+        return [(x, y), (x, y+1), (x+1, y+1), (x+1, y+2)]
+    elif n == 15:
+        return [(x, y), (x, y+1), (x, y+2), (x+1, y+1)]
+    elif n == 16:
+        return [(x+1, y), (x+1, y+1), (x+1, y+2), (x, y+1)]
+    elif n == 17:
+        return [(x+1, y), (x, y+1), (x+1, y+1), (x+2, y+1)]
+    elif n == 18:
+        return [(x, y), (x+1, y), (x+2, y), (x+1, y+1)]
 
-    if y + 3 < M:
-        t12 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x][y+3]
-        sums = max(sums, t12)
 
-    return sums
-
-def t2(x, y):
-    if x + 1 < N and y + 1 < M:
-        t21 = maps[x][y] + maps[x+1][y] + maps[x][y+1] + maps[x+1][y+1]
-        return t21
+def in_range(x, y):
+    if x < 0 or x >= N or y < 0 or y >= M:
+        return False
     else:
-        return 0
-
-def t3(x, y):
-    sums = 0
-    if x + 2 < N and y + 1 < M:
-        t31 = maps[x][y] + maps[x+1][y] + maps[x+2][y] + maps[x+2][y+1]
-        t32 = maps[x+2][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+2][y+1]
-        t33 = maps[x][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+2][y+1]
-        t34 = maps[x][y] + maps[x][y+1] + maps[x+1][y] + maps[x+2][y]
-        sums = max(sums, t31, t32, t33, t34)
-
-    if x + 1 < N and y + 2 < M:
-        t35 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x+1][y]
-        t36 = maps[x][y] + maps[x+1][y] + maps[x+1][y+1] + maps[x+1][y+2]
-        t37 = maps[x+1][y] + maps[x+1][y+1] + maps[x+1][y+2] + maps[x][y+2]
-        t38 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x+1][y+2]
-        sums = max(sums, t35, t36, t37, t38)
-
-    return sums
-
-def t4(x, y):
-    sums = 0
-    if x + 2 < N and y + 1 < M:
-        t41 = maps[x][y] + maps[x+1][y] + maps[x+1][y+1] + maps[x+2][y+1]
-        t42 = maps[x][y+1] + maps[x+1][y] + maps[x+1][y+1] + maps[x+2][y]
-        sums = max(sums, t41, t42)
-
-    if x + 1 < N and y + 2 < M:
-        t43 = maps[x][y+1] + maps[x][y+2] + maps[x+1][y] + maps[x+1][y+1]
-        t44 = maps[x][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+1][y+2]
-        sums = max(sums, t43, t44)
-
-    return sums
-
-def t5(x, y):
-    sums = 0
-    if x + 2 < N and y + 1 < M:
-        t51 = maps[x+1][y] + maps[x][y+1] + maps[x+1][y+1] + maps[x+2][y+1]
-        t52 = maps[x][y] + maps[x+1][y] + maps[x+2][y] + maps[x+1][y+1]
-        sums = max(sums, t51, t52)
-
-    if x + 1 < N and y + 2 < M:
-        t53 = maps[x][y] + maps[x][y+1] + maps[x][y+2] + maps[x+1][y+1]
-        t54 = maps[x][y+1] + maps[x+1][y] + maps[x+1][y+1] + maps[x+1][y+2]
-        sums = max(sums, t53, t54)
-
-    return sums
+        return True
 
 
 result = 0
-
-for i in range(N):
-    for j in range(M):
-        t1_max = t1(i, j)
-        t2_max = t2(i, j)
-        t3_max = t3(i, j)
-        t4_max = t4(i, j)
-        t5_max = t5(i, j)
-        result = max(t1_max, t2_max, t3_max, t4_max, t5_max, result)
+for r in range(N):
+    for c in range(M):
+        for i in range(19):
+            c1, c2, c3, c4 = tetris(r, c, i)
+            temp = 0
+            for xx, yy in (c1, c2, c3, c4):
+                if not in_range(xx, yy):
+                    continue
+                temp += arr[xx][yy]
+            if temp > result:
+                result = temp
 
 print(result)
