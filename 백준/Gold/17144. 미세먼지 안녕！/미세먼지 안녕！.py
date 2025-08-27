@@ -1,73 +1,67 @@
+# 17144. 미세먼지 안녕!
+
 R, C, T = map(int, input().split())
-room = []
+arr = []
 for _ in range(R):
-    room.append(list(map(int, input().split())))
+    arr.append(list(map(int, input().split())))
+robots = []
+robots_d = [0, 0]
+for i in range(R):
+    for j in range(C):
+        if arr[i][j] == -1:
+            robots.append((i, j))
+dx = [0, -1, 0, 1]
+dy = [1, 0, -1, 0]
 
-# 우 상 좌 하 / 우 하 좌 상
-di = [0, -1, 0, 1]
-dj = [1, 0, -1, 0]
 
-def air_fresh(flag, ai, aj, ad):
-    global temp, room, air
-    if not flag:
-        ni, nj = ai + di[ad], aj + dj[ad]
-
-        if ni < 0 or ni >= R or nj < 0 or nj >= C:
-            ad = (ad + 1) % 4
-            ni, nj = ai + di[ad], aj + dj[ad]
-
-        if not (ni, nj) == (air[flag][0], air[flag][1]):
-            temp[ni][nj] = room[ai][aj]
-            air_fresh(flag, ni, nj, ad)
-        else:
-            room = temp
-            return
+def in_range(x, y):
+    if x < 0 or x >= R or y < 0 or y >= C:
+        return False
     else:
-        ni, nj = ai + di[ad], aj + dj[ad]
+        return True
 
-        if ni < 0 or ni >= R or nj < 0 or nj >= C:
-            ad = (ad - 1) % 4
-            ni, nj = ai + di[ad], aj + dj[ad]
 
-        if not (ni, nj) == (air[flag][0], air[flag][1]):
-            temp[ni][nj] = room[ai][aj]
-            air_fresh(flag, ni, nj, ad)
-        else:
-            room = temp
-            return
+# wind(robots[0], 1)          # 시계 방향 회전
+def wind(x, y, s):
+    tmp = [a[:] for a in arr]
+    cx, cy, cd = x + dx[0], y + dy[0], 0
+    tmp[cx][cy] = 0
+    while True:
+        nx, ny = cx + dx[cd], cy + dy[cd]
+        if (nx, ny) == (x, y):
+            break
+        # 다음 위치 범위 벗어남 -> 방향 전환, 새로운 위치 찾기
+        if not in_range(nx, ny):
+            cd = (cd + s) % 4
+            nx, ny = cx + dx[cd], cy + dy[cd]
+        tmp[nx][ny] = arr[cx][cy]
+        cx, cy = nx, ny
+    return tmp
+
 
 for _ in range(T):
-    air = []
-    temp = [r[:] for r in room]
     # [1] 미세 먼지 확산
+    n_arr = [a[:] for a in arr]
     for i in range(R):
         for j in range(C):
-            if room[i][j] >= 1:
-                cnt = 0
-                for n in range(4):
-                    ni, nj = i + di[n], j + dj[n]
-                    if ni < 0 or ni >= R or nj < 0 or nj >= C:
+            if arr[i][j] >= 5:
+                tmp = 0
+                for d in range(4):
+                    ni, nj = i + dx[d], j + dy[d]
+                    if not in_range(ni, nj):
                         continue
-                    if room[ni][nj] >= 0:
-                        temp[ni][nj] += room[i][j] // 5
-                        cnt += 1
-                if cnt:
-                    temp[i][j] -= (room[i][j] // 5) * cnt
-            elif room[i][j] == -1:
-                air.append((i, j))
-    room = temp
+                    if not arr[ni][nj] == -1:
+                        n_arr[ni][nj] += arr[i][j] // 5
+                        tmp += 1
+                n_arr[i][j] = n_arr[i][j] - tmp * (arr[i][j] // 5)
+    arr = n_arr
 
     # [2] 공기 청정기 작동
-    for i, (ai, aj) in enumerate(air):
-        aj += 1
-        ad = 0
-        temp = [r[:] for r in room]
-        temp[ai][aj] = 0
-        air_fresh(i, ai, aj, ad)
+    arr = wind(robots[0][0], robots[0][1], 1)          # 시계 방향 회전
+    arr = wind(robots[1][0], robots[1][1], -1)         # 반시계 방향 회전
 
-# 결과 출력
-result = 2
-for r in room:
-    result += sum(r)
-
-print(result)
+# [3] 남아있는 미세먼지의 양
+result = 0
+for i in range(R):
+    result += sum(arr[i])
+print(result+2)
