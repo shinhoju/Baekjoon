@@ -1,59 +1,61 @@
-# 20056. 마법사 상어와 파이어 볼
-
-from copy import deepcopy
+# 20056. 마법사 상어와 파이어볼
 
 N, M, K = map(int, input().split())
-fire = dict()
+balls = {}
 for _ in range(M):
+    # r, c, m, s, d: 위치 / 질량 / 속력 / 방향
     r, c, m, s, d = map(int, input().split())
-    fire[(r, c)] = [[m, s, d]]
+    balls[(r, c)] = [[m, s, d]]
 
-dx = [-1, -1, 0, 1, 1, 1, 0, -1]
-dy = [0, 1, 1, 1, 0, -1, -1, -1]
+dr = [-1, -1, 0, 1, 1, 1, 0, -1]
+dc = [0, 1, 1, 1, 0, -1, -1, -1]
+
+
+def direction(arr):
+    cur_d = arr[0]
+    flag = False
+    for next_d in arr[1:]:
+        if cur_d != next_d:
+            flag = True
+    return flag
+
 
 for _ in range(K):
-    # [1] 모든 파이어 볼이 d 방향, s칸 만큼 이동
-    new_fire = {}
-    for ri, ci in fire.keys():
-        for mi, si, di in fire[(ri, ci)]:
-            nr = (ri + dx[di] * si) % N
-            nc = (ci + dy[di] * si) % N
-
-            if (nr, nc) in new_fire.keys():
-                new_fire[(nr, nc)].append([mi, si, di])
+    # [1] 모든 파이어 볼 이동
+    new_balls = {}
+    for (r, c) in balls.keys():
+        for m, s, d in balls[(r, c)]:
+            nr, nc = (r + dr[d] * s) % N, (c + dc[d] * s) % N
+            if not (nr, nc) in new_balls.keys():
+                new_balls[(nr, nc)] = [[m, s, d]]
             else:
-                new_fire[(nr, nc)] = [[mi, si, di]]
-    fire = new_fire
+                new_balls[(nr, nc)].append([m, s, d])
 
     # [2] 이동이 끝난 후, 2개 이상의 파이어 볼이 있는 칸
-    new_fire = deepcopy(fire)
-    for ri, ci in fire.keys():
-        if len(fire[(ri, ci)]) >= 2:
-            sum_m = 0
-            sum_s = 0
-            sum_d = []
-            for mi, si, di in fire[(ri, ci)]:
-                sum_m += mi
-                sum_s += si
-                sum_d.append(0 if di % 2 == 0 else 1)
-
-            new_m = sum_m // 5
-            new_s = sum_s // len(fire[(ri, ci)])
-
-            if new_m == 0:
-                new_fire.pop((ri, ci))
+    remove = []
+    for (r, c) in new_balls.keys():
+        if len(new_balls[(r, c)]) > 1:
+            new_m = 0
+            new_s = 0
+            new_ds = []
+            for m, s, d in new_balls[(r, c)]:
+                new_s += s
+                new_m += m
+                new_ds.append(d % 2)
+            new_m = new_m // 5
+            new_s = new_s // len(new_balls[(r, c)])
+            new_ds = [1, 3, 5, 7] if direction(new_ds) else [0, 2, 4, 6]
+            if new_m > 0:
+                new_balls[(r, c)] = [[new_m, new_s, new_d] for new_d in new_ds]
             else:
-                if all(num % 2 == 0 for num in sum_d) or all(num % 2 == 1 for num in sum_d):
-                    new_fire[(ri, ci)] = [[new_m, new_s, 0], [new_m, new_s, 2], [new_m, new_s, 4], [new_m, new_s, 6]]
-                else:
-                    new_fire[(ri, ci)] = [[new_m, new_s, 1], [new_m, new_s, 3], [new_m, new_s, 5], [new_m, new_s, 7]]
-    fire = new_fire
+                remove.append((r, c))
+    for key in remove:
+        new_balls.pop(key)
+    balls = new_balls
 
-
-# [3] 남은 질량
 result = 0
-for f in fire.values():
-    for m, _, _ in f:
+for ball in balls.values():
+    for m, _, _ in ball:
         result += m
 
 print(result)
