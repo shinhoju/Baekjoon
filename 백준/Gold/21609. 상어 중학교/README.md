@@ -1,4 +1,4 @@
-# [Gold II] 상어 중학교 - 21609 
+# [Gold I] 상어 중학교 - 21609 
 
 [문제 링크](https://www.acmicpc.net/problem/21609) 
 
