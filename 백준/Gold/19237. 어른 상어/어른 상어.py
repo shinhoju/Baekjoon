@@ -1,103 +1,87 @@
 # 19237. 어른 상어
-from copy import deepcopy
 
-N, M, k = map(int, input().split())
-sharks = dict()
-for r in range(N):
-    for c, v in enumerate(list(map(int, input().split()))):
-        if v > 0:
-            sharks[v] = (r, c)
+N, M, K = map(int, input().split())
+temp = []
+for _ in range(N):
+    temp.append(list(map(int, input().split())))
+temp_2 = list(map(int, input().split()))
+sharks = {}
+for i in range(N):
+    for j in range(N):
+        if temp[i][j] > 0:
+            sharks[temp[i][j]] = [i, j, temp_2[temp[i][j]-1]]
 
-sharks = dict(sorted(sharks.items()))
-
-sharks_d = [0]
-for s in list(map(int, input().split())):
-    sharks_d.append(s)
-
-priority = dict()
-for i in range(M*4):
-    temp = list(map(int, input().split()))
-    temp2 = {1: temp.index(1)+1, 2: temp.index(2)+1, 3: temp.index(3)+1, 4:temp.index(4)+1}
-    if i//4+1 in priority.keys():
-        priority[i//4+1].append(temp2)
+priority = {}
+for i in range(M * 4):
+    if not (i // 4 + 1) in priority.keys():
+        priority[i // 4 + 1] = [list(map(int, input().split()))]
     else:
-        priority[i//4+1] = [temp2]
-
-# 1: 위, 2: 아래, 3: 왼쪽, 4: 오른쪽
+        priority[i // 4 + 1].append(list(map(int, input().split())))
+arr = [[[0, 0] for _ in range(N)] for _ in range(N)]
 dx = [0, -1, 1, 0, 0]
 dy = [0, 0, 0, -1, 1]
 
 
-# 1번 상어만 남게 될 떄 까지 카운트
-count = 0
-ocean = [[[0, 0]] * N for _ in range(N)]
+def in_range(x, y):
+    if x < 0 or x >= N or y < 0 or y >= N:
+        return False
+    else:
+        return True
+
+
+# [1] 상어 init
+for s_num, [si, sj, sd] in sharks.items():
+    arr[si][sj] = [s_num, K]
+ans = 0
 while True:
+    # 종료 조건: 상어가 1마리만 남음
     if len(sharks) == 1:
         break
-
-    count += 1
-
-    if count > 1000:
-        count = -1
+    if ans >= 1000:
+        ans = -1
         break
 
-
-    # [1] 자신의 위치에 냄새 뿌림
-    for n, (x, y) in sharks.items():
-        ocean[x][y] = [n, k]
-
-    check = [[[0] for _ in range(N)] for _ in range(N)]
-
-    # [2] 상어 이동
-    # [2-1] 인접한 칸 중 아무 냄새가 없는 칸의 방향 / 자기 냄새 칸 방향
-    n_sharks = deepcopy(sharks)
-    for n, (x, y) in sharks.items():
-        psb_no_d = []
-        psb_same_d = []
-        for i in range(1,5):
-            nx, ny = x + dx[i], y + dy[i]
-            if nx < 0 or nx >= N or ny < 0 or ny >= N:
+    # [2] 상어 방향 정하기
+    # [2-1] 아무 냄새 없는 칸의 방향 -> 자기 냄새 있는 방향
+    for s_num, [si, sj, sd] in sharks.items():
+        n_si, n_sj, n_sd = 30, 30, 5
+        for pd in priority[s_num][sd-1]:
+            ni, nj = si + dx[pd], sj + dy[pd]
+            if not in_range(ni, nj):
                 continue
-            if ocean[nx][ny] == [0, 0]:
-                psb_no_d.append(i)
-            elif ocean[nx][ny][0] == n:
-                psb_same_d.append(i)
+            if arr[ni][nj] == [0, 0]:
+                n_si, n_sj, n_sd = ni, nj, pd
+                break
+        if n_sd == 5:
+            for pd in priority[s_num][sd-1]:
+                ni, nj = si + dx[pd], sj + dy[pd]
+                if not in_range(ni, nj):
+                    continue
+                if arr[ni][nj][0] == s_num:
+                    n_si, n_sj, n_sd = ni, nj, pd
+                    break
+        sharks[s_num] = [n_si, n_sj, n_sd]
 
-        # [2-2] 아무 냄새 x 칸 ) 한 개일 때, 여러 개일 때
-        if len(psb_no_d) >= 1:
-            if len(psb_no_d) > 1:
-                psb_no_d.sort(key=lambda v: priority[n][sharks_d[n] - 1][v])
-            sharks_d[n] = psb_no_d[0]
-            n_sharks[n] = (x + dx[psb_no_d[0]], y + dy[psb_no_d[0]])
-            check[n_sharks[n][0]][n_sharks[n][1]].append(n)
-
-        # [2-3] 자기 냄새 칸 ) 한 개일 때, 여러 개일 때
-        else:
-            if len(psb_same_d) > 1:
-                psb_same_d.sort(key=lambda v: priority[n][sharks_d[n] - 1][v])
-            sharks_d[n] = psb_same_d[0]
-            n_sharks[n] = (x + dx[psb_same_d[0]], y + dy[psb_same_d[0]])
-            check[n_sharks[n][0]][n_sharks[n][1]].append(n)
-    sharks = n_sharks
-
-    # [3] 냄새 - 1
+    # [4] 냄새 - 1
     for i in range(N):
         for j in range(N):
-            if ocean[i][j][1] > 1:
-                ocean[i][j][1] -= 1
-            elif ocean[i][j][1] == 1:
-                ocean[i][j] = [0, 0]
+            if arr[i][j][1] > 1:
+                arr[i][j][1] -= 1
+            elif arr[i][j][1] == 1:
+                arr[i][j] = [0, 0]
 
-    # [4] 한 칸에 여러 마리 남아 있으면, 가장 작은 번호 상어만 남기고 나감
-    for i in range(N):
-        for j in range(N):
-            if len(check[i][j]) > 2:
-                check[i][j].sort()
-                # 젤 작은 번호 빼고 다 나가
-                check[i][j].pop(0)
-                check[i][j].pop(0)
-                non_exist_num = check[i][j]
-                for num in non_exist_num:
-                    sharks.pop(num)
 
-print(count)
+    # [3] 같은 위치에 있는 상어 검사
+    temp = []
+    for i in range(1, M+1):
+        if i in sharks.keys():
+            si, sj, _ = sharks[i]
+            if (si, sj) in temp:
+                sharks.pop(i)
+            else:
+                arr[si][sj] = [i, K]
+                temp.append((si, sj))
+
+    ans += 1
+
+print(ans)
